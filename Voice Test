@@ -1,0 +1,19 @@
+import pyttsx3
+
+def speak(text):
+       # Initialize the pyttsx3 engine
+    engine = pyttsx3.init()
+
+      # Set the voice properties (optional)
+    voices = engine.getProperty('voices')
+      # Set the voice ID of your preferred voice
+    engine.setProperty('voice', voices[15].id)
+    engine.setProperty('rate', 175)
+      # Speak the text
+    engine.say(text)
+    engine.runAndWait()
+
+      # Example usage
+text = "voice test"
+        
+speak(text)

@@ -1,0 +1,94 @@
+import RPi.GPIO as GPIO
+import time
+
+# Define GPIO pins for ultrasonic sensor, buzzer, and vibration motor
+TRIG_PIN = 23
+ECHO_PIN = 24
+BUZZER_PIN = 17
+VIBRATION_PIN = 27
+
+# Initialize GPIO settings
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(TRIG_PIN, GPIO.OUT)
+GPIO.setup(ECHO_PIN, GPIO.IN)
+GPIO.setup(BUZZER_PIN, GPIO.OUT)
+GPIO.setup(VIBRATION_PIN, GPIO.OUT)
+
+def measure_distance():
+    # Send ultrasonic pulse
+    GPIO.output(TRIG_PIN, True)
+    time.sleep(0.00001)
+    GPIO.output(TRIG_PIN, False)
+
+    # Measure the time taken for the pulse to bounce back
+    start_time = time.time()
+    while GPIO.input(ECHO_PIN) == 0:
+        start_time = time.time()
+    while GPIO.input(ECHO_PIN) == 1:
+        if time.time() - start_time > 0.1:
+            break
+    end_time = time.time()
+
+    # Calculate distance based on the speed of sound
+    duration = end_time - start_time
+    distance = round(duration * 17150, 2)
+    return distance
+
+def beep_buzzer(distance):
+    if distance > 100:
+        # Beep slowly
+        GPIO.output(BUZZER_PIN, True)
+        time.sleep(0.005)
+        GPIO.output(BUZZER_PIN, True)
+        time.sleep(0.005)
+        
+    elif distance >= 76 and distance <= 100:
+        # Beep slowly
+        GPIO.output(BUZZER_PIN, False)
+        time.sleep(0.3)
+        GPIO.output(BUZZER_PIN, True)
+        time.sleep(0.3)
+    elif distance >= 51 and distance <= 75:
+        # Beep normally
+        GPIO.output(BUZZER_PIN, True)
+        time.sleep(0.2)
+        GPIO.output(BUZZER_PIN, False)
+        time.sleep(0.2)
+    elif distance >= 30 and distance <= 50:
+        # Beep fast
+        GPIO.output(BUZZER_PIN, True)
+        time.sleep(0.1)
+        GPIO.output(BUZZER_PIN, False)
+        time.sleep(0.1)
+    elif distance < 25:
+        # Beep very fast
+        GPIO.output(BUZZER_PIN, True)
+        time.sleep(0.05)
+        GPIO.output(BUZZER_PIN, False)
+        time.sleep(0.05)
+    
+
+def vibrate_motor():
+    GPIO.output(VIBRATION_PIN, True)
+    time.sleep(0.5)
+    GPIO.output(VIBRATION_PIN, False)
+    time.sleep(0.5)
+
+try:
+    while True:
+        distance = measure_distance()
+        print("Distance:", distance, "cm")
+      
+        if distance >= 76 and distance <= 100:
+            beep_buzzer(distance)
+            vibrate_motor()
+        elif distance >= 51 and distance <= 75:
+            beep_buzzer(distance)
+        elif distance >= 30 and distance <= 50:
+            beep_buzzer(distance)
+        elif distance < 25:
+            beep_buzzer(distance)
+
+except KeyboardInterrupt:
+    GPIO.cleanup()
+
